@@ -7,9 +7,9 @@ graph TD
     A[User / Browser] -->|HTTP| B[Nginx Gateway]
 
     subgraph Cluster[Kubernetes / Minikube]
-        B -->|/api/users| C[Users Service\n(Spring Boot)]
-        B -->|/api/orders| D[Orders Service\n(Spring Boot)]
-        B -->|Static Files| E[Frontend\n(HTML + JS)]
+        B -->|/api/users| C[Users Service<br />(Spring Boot)]
+        B -->|/api/orders| D[Orders Service<br />(Spring Boot)]
+        B -->|Static Files| E[Frontend<br />(HTML + JS)]
         C --> F[(Postgres DB)]
         D --> F
     end
@@ -24,8 +24,8 @@ graph TD
     end
 
     subgraph Infra[Terraform (IaC)]
-        M[Docker Provider\n• Local Registry\n• Postgres]
-        N[Kubernetes Provider\n• Namespaces\n• Deployments\n• Services\n• Ingress]
+        M[Docker Provider<br />• Local Registry<br />• Postgres]
+        N[Kubernetes Provider<br />• Namespaces<br />• Deployments<br />• Services<br />• Ingress]
     end
 
     Infra --> Cluster
