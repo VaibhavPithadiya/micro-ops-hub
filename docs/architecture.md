@@ -7,7 +7,7 @@ graph TD
     A[User / Browser] -->|HTTP| B[Nginx Gateway]
 
     subgraph Cluster[Kubernetes / Minikube]
-        B -->|/api/users| C[Users Service (Spring Boot)]
+        B -->|/api/users| C[Users Service(Spring Boot)]
         B -->|/api/orders| D[Orders Service(Spring Boot)]
         B -->|Static Files| E[Frontend(HTML + JS)]
         C --> F[(Postgres DB)]
