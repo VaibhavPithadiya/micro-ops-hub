@@ -23,7 +23,7 @@ graph TD
         L --> Cluster
     end
 
-    subgraph Infra[🏗️ Infrastructure — Terraform (IaC)]
+    subgraph Infra[🏗️ Infrastructure — Terraform]
         M[🐋 Docker Provider<br>🧰 Local Registry<br>🐘 Postgres]
         N[☸️ Kubernetes Provider<br>🗂️ Namespaces<br>🧩 Deployments<br>🌐 Services<br>🚪 Ingress]
     end
