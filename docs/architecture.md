@@ -1,4 +1,4 @@
-# 🏗️ System Architecture — DevOps Microservices Project
+# 🏗️ System Architecture — MicroOps Hub
 
 This document describes the high-level architecture of the microservices-based system.
 
