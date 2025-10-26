@@ -1,0 +1,19 @@
+server:
+  port: 8082
+  servlet:
+    context-path: userservice
+
+cors-origin: "http://localhost:63342"
+
+spring:
+  datasource:
+    url: jdbc:postgresql://localhost:5432/MicroOpsHub
+    username: microops
+    password: MicroOps#111
+  jpa:
+    hibernate:
+      ddl-auto: update  # auto-creates tables from entities
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true

@@ -1,0 +1,17 @@
+:root {
+  --bs-primary: #007bff;
+  --bs-secondary: #00bcd4;
+  --bs-success: #28a745;
+  --bs-body-bg: #f8f9fa;
+  --bs-font-sans-serif: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+}
+
+body {
+  background-color: var(--bs-body-bg);
+  font-family: var(--bs-font-sans-serif);
+}
+
+.navbar-brand {
+  font-weight: 700;
+  letter-spacing: 0.5px;
+}
