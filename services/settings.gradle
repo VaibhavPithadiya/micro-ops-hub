@@ -1,0 +1,3 @@
+rootProject.name = 'micro-ops-hub'
+include 'user-service'
+include 'order-service'

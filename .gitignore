@@ -1,0 +1,6 @@
+/services/.gradle/
+/services/.idea/
+/services/order-service/gradle/
+/services/user-service/.gradle/
+/services/order-service/build/
+/services/user-service/build/
