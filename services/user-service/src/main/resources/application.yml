@@ -1,7 +1,7 @@
 server:
   port: 8082
   servlet:
-    context-path: userservice
+    context-path: /userservice
 
 cors-origin: "http://localhost:63342"
 
@@ -9,7 +9,7 @@ spring:
   datasource:
     url: jdbc:postgresql://localhost:5432/MicroOpsHub
     username: microops
-    password: MicroOps#111
+    password: MicroOps#123
   jpa:
     hibernate:
       ddl-auto: update  # auto-creates tables from entities
@@ -17,3 +17,9 @@ spring:
     properties:
       hibernate:
         format_sql: true
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics

@@ -30,7 +30,7 @@ graph TD
     A[MicroOps Hub Root] --> B[services/]
     B --> B1[users-service/]
     B --> B2[orders-service/]
-    B --> B3[frontend/]
+    B --> B3[frontend-service/]
 
     A --> C[infrastructure/]
     C --> C1[terraform/]

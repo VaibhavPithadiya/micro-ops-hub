@@ -4,3 +4,9 @@
 /services/user-service/.gradle/
 /services/order-service/build/
 /services/user-service/build/
+/.idea/.gitignore
+/.idea/material_theme_project_new.xml
+/.idea/micro-ops-hub.iml
+/.idea/misc.xml
+/.idea/modules.xml
+/.idea/vcs.xml

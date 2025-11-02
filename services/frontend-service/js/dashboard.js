@@ -1,4 +1,4 @@
-// frontend/js/dashboard.js
+// frontend-service/js/dashboard.js
 
 let currentUser;
 

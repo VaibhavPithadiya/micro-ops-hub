@@ -1,4 +1,4 @@
-// frontend/js/auth.js
+// frontend-service/js/auth.js
 
 async function registerUser(event) {
   event.preventDefault();
