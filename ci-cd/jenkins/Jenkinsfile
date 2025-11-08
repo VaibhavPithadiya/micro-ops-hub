@@ -1,0 +1,115 @@
+pipeline {
+    agent any
+
+    environment {
+        REGISTRY = "localhost:5000"
+        DOCKER_HOST = "unix:///var/run/docker.sock"
+    }
+
+    stages {
+        stage('Checkout') {
+            steps {
+                echo '📦 Checking out code...'
+                checkout scm
+            }
+        }
+
+        stage('Unit Tests') {
+            parallel {
+                stage('Users Service Tests') {
+                    steps {
+                        dir('../../services/users-service') {
+                            echo '🧪 Running unit tests for Users Service...'
+                            sh './gradlew clean test'
+                        }
+                    }
+                }
+                stage('Orders Service Tests') {
+                    steps {
+                        dir('../../services/orders-service') {
+                            echo '🧪 Running unit tests for Orders Service...'
+                            sh './gradlew clean test'
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Docker Build') {
+            parallel {
+                stage('Users Image') {
+                    steps {
+                        dir('../../services/users-service') {
+                            sh '''
+                              echo "🐳 Building users-service image..."
+                              docker build -t users-service:latest .
+                              docker tag users-service:latest ${REGISTRY}/users-service:1.0
+                            '''
+                        }
+                    }
+                }
+                stage('Orders Image') {
+                    steps {
+                        dir('../../services/orders-service') {
+                            sh '''
+                              echo "🐳 Building orders-service image..."
+                              docker build -t orders-service:latest .
+                              docker tag orders-service:latest ${REGISTRY}/orders-service:1.0
+                            '''
+                        }
+                    }
+                }
+                stage('Frontend Image') {
+                    steps {
+                        dir('../../services/frontend') {
+                            sh '''
+                              echo "🐳 Building frontend-service image..."
+                              docker build -t frontend-service:latest .
+                              docker tag frontend-service:latest ${REGISTRY}/frontend-service:1.0
+                            '''
+                        }
+                    }
+                }
+            }
+        }
+
+        stage('Push to Local Registry') {
+            steps {
+                echo "📤 Pushing all images to ${REGISTRY}..."
+                sh '''
+                  docker push ${REGISTRY}/users-service:1.0
+                  docker push ${REGISTRY}/orders-service:1.0
+                  docker push ${REGISTRY}/frontend-service:1.0
+                '''
+            }
+        }
+
+        stage('Smoke Test (Docker Compose)') {
+            steps {
+                echo "🚀 Starting full stack for smoke tests..."
+                sh '''
+                  docker compose up -d
+                  sleep 10
+                  echo "🌡️ Running health checks..."
+                  curl -f http://localhost:8081/health || echo "Users service health failed"
+                  curl -f http://localhost:8082/health || echo "Orders service health failed"
+                  curl -f http://localhost:80 || echo "Frontend failed"
+                  docker compose down
+                '''
+            }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed. Check logs!'
+        }
+        always {
+            echo '🧹 Cleaning workspace...'
+            cleanWs()
+        }
+    }
+}

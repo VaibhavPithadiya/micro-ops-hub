@@ -1,0 +1,6 @@
+docker-workflow
+git
+gradle
+credentials-binding
+junit
+kubernetes-cli
