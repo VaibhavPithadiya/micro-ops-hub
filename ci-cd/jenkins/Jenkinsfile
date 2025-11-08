@@ -2,14 +2,15 @@ pipeline {
     agent any
 
     environment {
-        REGISTRY = "localhost:5000"
-        DOCKER_HOST = "unix:///var/run/docker.sock"
+        // Local registry URL and image version
+        REGISTRY_URL = "localhost:5000"
+        IMAGE_VERSION = "1.0"
     }
 
     stages {
         stage('Checkout') {
             steps {
-                echo '📦 Checking out code...'
+                echo "📦 Checking out code..."
                 checkout scm
             }
         }
@@ -18,17 +19,21 @@ pipeline {
             parallel {
                 stage('Users Service Tests') {
                     steps {
-                        dir('../../services/users-service') {
-                            echo '🧪 Running unit tests for Users Service...'
-                            sh './gradlew clean test'
+                        dir('services/users-service') {
+                            echo "🧪 Running unit tests for Users Service..."
+                            sh '''
+                            docker run --rm -v $PWD:/app -w /app gradle:8.10-jdk21-alpine gradle clean test --no-daemon
+                            '''
                         }
                     }
                 }
                 stage('Orders Service Tests') {
                     steps {
-                        dir('../../services/orders-service') {
-                            echo '🧪 Running unit tests for Orders Service...'
-                            sh './gradlew clean test'
+                        dir('services/orders-service') {
+                            echo "🧪 Running unit tests for Orders Service..."
+                            sh '''
+                            docker run --rm -v $PWD:/app -w /app gradle:8.10-jdk21-alpine gradle clean test --no-daemon
+                            '''
                         }
                     }
                 }
@@ -39,34 +44,28 @@ pipeline {
             parallel {
                 stage('Users Image') {
                     steps {
-                        dir('../../services/users-service') {
-                            sh '''
-                              echo "🐳 Building users-service image..."
-                              docker build -t users-service:latest .
-                              docker tag users-service:latest ${REGISTRY}/users-service:1.0
-                            '''
+                        dir('services/users-service') {
+                            sh """
+                            docker build -t $REGISTRY_URL/users-service:$IMAGE_VERSION .
+                            """
                         }
                     }
                 }
                 stage('Orders Image') {
                     steps {
-                        dir('../../services/orders-service') {
-                            sh '''
-                              echo "🐳 Building orders-service image..."
-                              docker build -t orders-service:latest .
-                              docker tag orders-service:latest ${REGISTRY}/orders-service:1.0
-                            '''
+                        dir('services/orders-service') {
+                            sh """
+                            docker build -t $REGISTRY_URL/orders-service:$IMAGE_VERSION .
+                            """
                         }
                     }
                 }
                 stage('Frontend Image') {
                     steps {
-                        dir('../../services/frontend') {
-                            sh '''
-                              echo "🐳 Building frontend-service image..."
-                              docker build -t frontend-service:latest .
-                              docker tag frontend-service:latest ${REGISTRY}/frontend-service:1.0
-                            '''
+                        dir('services/frontend') {
+                            sh """
+                            docker build -t $REGISTRY_URL/frontend:$IMAGE_VERSION .
+                            """
                         }
                     }
                 }
@@ -75,41 +74,39 @@ pipeline {
 
         stage('Push to Local Registry') {
             steps {
-                echo "📤 Pushing all images to ${REGISTRY}..."
-                sh '''
-                  docker push ${REGISTRY}/users-service:1.0
-                  docker push ${REGISTRY}/orders-service:1.0
-                  docker push ${REGISTRY}/frontend-service:1.0
-                '''
+                sh """
+                docker push $REGISTRY_URL/users-service:$IMAGE_VERSION
+                docker push $REGISTRY_URL/orders-service:$IMAGE_VERSION
+                docker push $REGISTRY_URL/frontend:$IMAGE_VERSION
+                """
             }
         }
 
         stage('Smoke Test (Docker Compose)') {
             steps {
-                echo "🚀 Starting full stack for smoke tests..."
-                sh '''
-                  docker compose up -d
-                  sleep 10
-                  echo "🌡️ Running health checks..."
-                  curl -f http://localhost:8081/health || echo "Users service health failed"
-                  curl -f http://localhost:8082/health || echo "Orders service health failed"
-                  curl -f http://localhost:80 || echo "Frontend failed"
-                  docker compose down
-                '''
+                echo "🚀 Running smoke tests..."
+                sh """
+                docker compose up -d
+                sleep 5
+                curl -f http://localhost:8080/users/health
+                curl -f http://localhost:8081/orders/health
+                curl -f http://localhost:8082/
+                docker compose down
+                """
             }
         }
     }
 
     post {
+        always {
+            echo "🧹 Cleaning workspace..."
+            cleanWs()
+        }
         success {
-            echo '✅ Pipeline completed successfully!'
+            echo "✅ Pipeline completed successfully!"
         }
         failure {
-            echo '❌ Pipeline failed. Check logs!'
-        }
-        always {
-            echo '🧹 Cleaning workspace...'
-            cleanWs()
+            echo "❌ Pipeline failed. Check logs!"
         }
     }
 }
