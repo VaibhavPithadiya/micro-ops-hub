@@ -2,111 +2,49 @@ pipeline {
     agent any
 
     environment {
-        // Local registry URL and image version
-        REGISTRY_URL = "localhost:5000"
-        IMAGE_VERSION = "1.0"
+        REGISTRY = "localhost:5000"
+        PROJECT = "microops"
     }
 
     stages {
+
         stage('Checkout') {
             steps {
-                echo "📦 Checking out code..."
-                checkout scm
+                git branch: 'jenkinstest', url: 'https://github.com/VaibhavPithadiya/micro-ops-hub.git'
             }
         }
 
-        stage('Unit Tests') {
-            parallel {
-                stage('Users Service Tests') {
-                    steps {
-                        dir('services/users-service') {
-                            echo "🧪 Running unit tests for Users Service..."
-                            sh '''
-                            docker run --rm -v $PWD:/app -w /app gradle:8.10-jdk21-alpine gradle clean test --no-daemon
-                            '''
-                        }
-                    }
-                }
-                stage('Orders Service Tests') {
-                    steps {
-                        dir('services/orders-service') {
-                            echo "🧪 Running unit tests for Orders Service..."
-                            sh '''
-                            docker run --rm -v $PWD:/app -w /app gradle:8.10-jdk21-alpine gradle clean test --no-daemon
-                            '''
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Docker Build') {
-            parallel {
-                stage('Users Image') {
-                    steps {
-                        dir('services/users-service') {
-                            sh """
-                            docker build -t $REGISTRY_URL/users-service:$IMAGE_VERSION .
-                            """
-                        }
-                    }
-                }
-                stage('Orders Image') {
-                    steps {
-                        dir('services/orders-service') {
-                            sh """
-                            docker build -t $REGISTRY_URL/orders-service:$IMAGE_VERSION .
-                            """
-                        }
-                    }
-                }
-                stage('Frontend Image') {
-                    steps {
-                        dir('services/frontend') {
-                            sh """
-                            docker build -t $REGISTRY_URL/frontend:$IMAGE_VERSION .
-                            """
-                        }
-                    }
-                }
-            }
-        }
-
-        stage('Push to Local Registry') {
+        stage('Build Images') {
             steps {
-                sh """
-                docker push $REGISTRY_URL/users-service:$IMAGE_VERSION
-                docker push $REGISTRY_URL/orders-service:$IMAGE_VERSION
-                docker push $REGISTRY_URL/frontend:$IMAGE_VERSION
-                """
+                sh 'bash ci-cd/jenkins/scripts/build-images.sh'
             }
         }
 
-        stage('Smoke Test (Docker Compose)') {
+        stage('Security Scan') {
             steps {
-                echo "🚀 Running smoke tests..."
-                sh """
-                docker compose up -d
-                sleep 5
-                curl -f http://localhost:8080/users/health
-                curl -f http://localhost:8081/orders/health
-                curl -f http://localhost:8082/
-                docker compose down
-                """
+                sh 'bash ci-cd/jenkins/scripts/trivy-scan.sh'
+            }
+        }
+
+        stage('Push to Registry') {
+            steps {
+                sh 'bash ci-cd/jenkins/scripts/push-images.sh'
+            }
+        }
+
+        stage('Deploy (docker-compose)') {
+            steps {
+                sh 'bash ci-cd/jenkins/scripts/deploy-compose.sh'
             }
         }
     }
 
     post {
-        always {
-            echo "🧹 Cleaning workspace..."
-            cleanWs()
-        }
         success {
             echo "✅ Pipeline completed successfully!"
         }
         failure {
-            echo "❌ Pipeline failed. Check logs!"
+            echo "❌ Pipeline failed. Check logs."
         }
     }
 }
