@@ -2,8 +2,8 @@
 set -e
 
 echo "📤 Pushing images to local registry..."
-docker push localhost:5000/users-service:latest
-docker push localhost:5000/orders-service:latest
-docker push localhost:5000/frontend:latest
+docker push localhost:5000/user-service:latest
+docker push localhost:5000/order-service:latest
+docker push localhost:5000/frontend-service:latest
 
 echo "✅ Push complete."
