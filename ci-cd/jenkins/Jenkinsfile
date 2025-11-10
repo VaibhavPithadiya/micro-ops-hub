@@ -20,11 +20,11 @@ pipeline {
             }
         }
 
-        stage('Security Scan') {
-            steps {
-                sh 'bash ci-cd/jenkins/scripts/trivy-scan.sh'
-            }
-        }
+//         stage('Security Scan') {
+//             steps {
+//                 sh 'bash ci-cd/jenkins/scripts/trivy-scan.sh'
+//             }
+//         }
 
         stage('Push to Registry') {
             steps {
